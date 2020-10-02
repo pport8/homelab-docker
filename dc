@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Created by pport.
+
+DOCKER_DIR="/docker"
+
+# Define environment. If not, exit inmediately
+if [ "$1" = "production" ] || \
+   [ "$1" = "development" ]; then
+    env_file="$1.env"
+    working_dir="$DOCKER_DIR/$1"
+    shift
+else
+    echo "[err] invalid environment argument."
+    usage
+fi
+
+declare -a folders=( $(ls -d $working_dir/*/docker-compose.yml) )
+declare -a projects
+
+# Function declaration
+function usage() {
+    echo "Usage: $0 [-e production || development]" \
+        "[-f PROJECT_FOLDERS...] [COMPOSE_COMMANDS...]" 1>&2
+    exit 1
+}
+
+function parseOpt() {
+    while getopts ":f:" options; do
+        case $options in
+            f)
+                # If enviroment isn't setted, exit.
+                [ ! "$working_dir" ] \
+                    && echo "[err] option -e must be the first." \
+                    && usage
+    
+                # Get project folders 
+                # (only those who have docker-compose.yml file inside)
+                
+                IFS=','
+                for arg in $OPTARG; do
+                    arg="$arg/docker-compose.yml"
+                    if [[ " ${folders[@]} " =~ "/$arg " ]];then
+                        projects+=( "$working_dir/$arg" )
+                    else
+                        echo "[err] '${arg%/*}' is not a project folder."
+                        exit 1
+                    fi 
+                done
+                unset IFS
+                ;;
+            \?)
+                echo "[err] option -$OPTARG does not exist."
+                usage
+                ;;
+        esac
+    done
+    # If no project names introduced, assume all
+    [ ${#projects[@]} -eq 0 ] && projects=( ${folders[@]} )
+}
+
+
+# Parse environment options
+parseOpt $@
+# Shift positional parameters (must be outside parseOpt funtion!)
+shift $((OPTIND-1))
+
+
+# Get docker-compose commands
+declare -a composeCommands=( $(docker-compose --help | \
+    awk '/Commands:/,0 {print $1}' | tail -n +2) )
+# Parse compose commands
+[ ! "$1" ] && echo "[err] compose command not provided." && usage
+declare command=false
+for cc in ${composeCommands[@]}; do
+    [ "$1" = "$cc" ] && command=true && break
+done
+# Check if command is provided
+[ "$command" = "false" ] && echo "[err] '$1' is not a compose command." && usage
+
+
+# Mark subsequent vars to export
+set -a
+# Source environment vars file
+. "$working_dir/$env_file"
+# Command execution
+proj="${projects[@]}"
+#echo "docker-compose -f ${proj// / -f } $@"
+docker-compose -f ${proj// / -f } $@
+
+exit 0
+

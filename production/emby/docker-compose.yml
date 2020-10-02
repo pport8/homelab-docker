@@ -1,0 +1,38 @@
+#######################
+## Emby Media Server ##
+#######################
+version: '3.5'
+services:
+  emby:
+    container_name: emby
+    image: emby/embyserver
+    ports:
+      - $P_EMBY:8096
+    volumes:
+      - ${VOLUMES_PATH}/emby/volumes/config:/config
+      - ${STORAGE_PATH}/movies:/mnt/movies:rw
+      - ${STORAGE_PATH}/tvshows:/mnt/tvshows:rw
+      - ${STORAGE_PATH}/music:/mnt/music:rw
+    environment:
+      - PRETTY_NAME=Emby
+      - VIRTUAL_PORT=$P_EMBY
+      - VIRTUAL_HOST=${SD_EMBY}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_EMBY}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - GIDLIST=998,44
+      # 44 --> HD Graphics Group
+      # $ getent group video | cut -d: -f3
+      - TZ=${TZ}
+    devices:
+      - /dev/dri:/dev/dri
+    networks:
+      - reverse-proxy
+    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+

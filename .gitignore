@@ -1,0 +1,10 @@
+# Docker volumes folder
+/production/*/volumes
+/development/*/volumes
+
+# Old compose files (good to have)
+/compose-backups
+
+# Env files (metadata and passwords)
+/production/production.env
+/development/development.env

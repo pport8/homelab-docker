@@ -1,0 +1,30 @@
+#####################
+## Bitwarden Vault ##
+#####################
+version: '3.5'
+services:
+  bitwarden:
+    container_name: bitwarden
+    image: bitwardenrs/server
+    ports:
+      - ${P_BITWARDEN}:80
+    volumes:
+      - ${VOLUMES_PATH}/bitwarden/volumes/data:/data
+    environment:
+      - PRETTY_NAME=Bitwarden
+      - VIRTUAL_PORT=${P_BITWARDEN} 
+      - VIRTUAL_HOST=${SD_BITWARDEN}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_BITWARDEN}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - reverse-proxy
+    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+

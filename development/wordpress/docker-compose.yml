@@ -1,0 +1,53 @@
+######################
+## Wordpress Server ##
+######################
+version: '3.5'
+services:
+  wordpress:
+    container_name: wordpress
+    image: wordpress:latest
+    ports:
+      - ${P_WORDPRESS}:80
+    depends_on:
+      - wordpressdb
+    environment:
+      - PRETTY_NAME=WordPress Ale
+      - WORDPRESS_DB_HOST=${WP_MYSQL_HOST}
+      - WORDPRESS_DB_NAME=${WP_MYSQL_DATABASE}
+      - WORDPRESS_DB_USER=${WP_MYSQL_USER}
+      - WORDPRESS_DB_PASSWORD=${WP_MYSQL_PASSWORD}
+      - VIRTUAL_PORT=${P_WORDPRESS} 
+      - VIRTUAL_HOST=${SD_WORDPRESS}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_WORDPRESS}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - reverse-proxy
+      - wordpress-ale
+    restart: unless-stopped
+
+  wordpressdb:
+    container_name: wordpressdb
+    image: mysql:5.7
+    volumes:
+      - ${VOLUMES_PATH}/wordpress/volumes/mysql:/var/lib/mysql
+    environment:
+      - PRETTY_NAME=Wordpress Ale DB
+      - MYSQL_ROOT_PASSWORD=${WP_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${WP_MYSQL_DATABASE}
+      - MYSQL_USER=${WP_MYSQL_USER}
+      - MYSQL_PASSWORD=${WP_MYSQL_PASSWORD}
+    networks:
+      - wordpress-ale
+    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+  wordpress-ale:
+    name: wordpress-ale
+    driver: bridge
+    internal: yes

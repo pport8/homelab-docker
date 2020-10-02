@@ -1,0 +1,23 @@
+###############################
+## DNSMasq for local network ##
+###############################
+version: '3.5'
+services:
+  dnsmasq:
+    container_name: dnsmasq
+    image: jpillora/dnsmasq
+    ports:
+      - 53:53/udp
+      - ${P_DNSMASQ}:8080
+    volumes:
+      - ${VOLUMES_PATH}/dnsmasq/volumes/dnsmasq.conf:/etc/dnsmasq.conf
+    environment:
+      - PRETTY_NAME=DNSMasq
+      - HTTP_USER=foo
+      - HTTP_PASS=bar
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - GIDLIST=${PGID},44
+      - TZ=${TZ}
+    restart: unless-stopped
+

@@ -1,0 +1,80 @@
+######################
+## Nextcloud Server ##
+######################
+version: '3.5'
+services:
+  nextcloud:
+    container_name: nextcloud
+    image: nextcloud:${TAG_NEXTCLOUD}
+    ports:
+      - ${P_NEXTCLOUD}:80
+    depends_on:
+      - ncdb
+    volumes:
+      - ${VOLUMES_PATH}/nextcloud/volumes/html:/var/www/html
+      - /etc/localtime:/etc/localtime:ro
+      #External Storage
+      - /storage/music:/mnt/music:rw
+    environment:
+      - PRETTY_NAME=Nextcloud
+      - MYSQL_HOST=${NC_MYSQL_HOST}
+      - MYSQL_DATABASE=${NC_MYSQL_DATABASE}
+      - MYSQL_USER=${NC_MYSQL_USER}
+      - MYSQL_PASSWORD=${NC_MYSQL_PASSWORD}
+      # OnlyOffice Integration
+      #- NEXTCLOUD_TRUSTED_DOMAINS=nginx
+      - VIRTUAL_PORT=${P_NEXTCLOUD} 
+      - VIRTUAL_HOST=${SD_NEXTCLOUD}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_NEXTCLOUD}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - reverse-proxy
+      - nextcloud
+    restart: unless-stopped
+
+  ncdb:
+    container_name: ncdb
+    image: mariadb
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    volumes:
+      - ${VOLUMES_PATH}/nextcloud/volumes/mysql:/var/lib/mysql
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - PRETTY_NAME=Nextcloud DB
+      - MYSQL_ROOT_PASSWORD=${NC_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${NC_MYSQL_DATABASE}
+      - MYSQL_USER=${NC_MYSQL_USER}
+      - MYSQL_PASSWORD=${NC_MYSQL_PASSWORD}
+    networks:
+      - nextcloud
+    restart: unless-stopped
+
+#  collabora:
+#    container_name: collabora
+#    image: collabora/code
+#    ports:
+#      - 9980:9980
+#    cap_add:
+#      - MKNOD
+#    environment:
+#      - PRETTY_NAME=Collabora
+#      - VIRTUAL_PORT=9980
+#      - VIRTUAL_HOST=office.${SERVER_DOMAIN}
+#      - domain=cloud\.laniakea\.ink
+#      - dictionaries=es_ES en_US
+#    networks:
+#      - reverse-proxy
+#      - nextcloud
+#    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+  nextcloud:
+    name: nextcloud
+    driver: bridge
+    internal: yes

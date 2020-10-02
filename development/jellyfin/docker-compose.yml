@@ -1,0 +1,39 @@
+###########################
+## Jellyfin Media Server ##
+###########################
+version: '3.5'
+services:
+  jellyfin:
+    container_name: jellyfin
+    image: jellyfin/jellyfin
+    ports:
+      - ${P_JELLYFIN}:8096
+    volumes:
+      - ${DEVELOPMENT_PATH}/jellyfin/volumes/config:/config
+      - ${DEVELOPMENT_PATH}/jellyfin/volumes/cache:/cache
+      - ${STORAGE_PATH}/movies:/mnt/movies:rw
+      - ${STORAGE_PATH}/tvshows:/mnt/tvshows:rw
+      - ${STORAGE_PATH}/music:/mnt/music:rw
+    environment:
+      - PRETTY_NAME=Jellyfin
+      - VIRTUAL_PORT=${P_JELLYFIN}
+      - VIRTUAL_HOST=${SD_JELLYFIN}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_JELLYFIN}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - GIDLIST=${PGID},44
+      - TZ=${TZ}
+    devices:
+      # VAAPI HD Graphics Devices
+      - /dev/dri/card0:/dev/dri/card0
+      - /dev/dri/renderD128:/dev/dri/renderD128
+    networks:
+      - reverse-proxy
+    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+

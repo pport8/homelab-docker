@@ -1,0 +1,51 @@
+##################
+## Hugo Webpage ##
+##################
+version: '3.5'
+services:
+  hugo:
+    container_name: hugo
+    image: jojomi/hugo:latest
+    volumes:
+      - ${VOLUMES_PATH}/hugo/volumes/src:/src
+      - ${VOLUMES_PATH}/hugo/volumes/output:/output
+    environment:
+      - PRETTY_NAME=Hugo Ale
+      - HUGO_REFRESH_TIME=3600
+      - HUGO_THEME=
+      - HUGO_BASEURL=hugobogado.laniakea.ink
+    networks:
+      - hugo-ale
+    restart: unless-stopped
+
+  hugo-web:
+    container_name: hugo-web
+    image: jojomi/nginx-static
+    depends_on:
+      - hugo
+    ports:
+      - ${P_HUGO}:80
+    volumes:
+      - ${VOLUMES_PATH}/hugo/volumes/output:/var/www
+    environment:
+      - PRETTY_NAME=Hugo Ale Web
+      - VIRTUAL_PORT=${P_HUGO}
+      - VIRTUAL_HOST=${SD_HUGO}.${SERVER_DOMAIN}
+      - LETSENCRYPT_HOST=${SD_HUGO}.${SERVER_DOMAIN}
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    networks:
+      - hugo-ale
+      - reverse-proxy
+    restart: unless-stopped
+
+networks:
+  reverse-proxy:
+    external:
+      name: reverse-proxy
+  hugo-ale:
+    name: hugo-ale
+    driver: bridge
+    internal: yes
