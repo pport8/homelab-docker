@@ -13,8 +13,6 @@ services:
     volumes:
       - ${VOLUMES_PATH}/nextcloud/volumes/html:/var/www/html
       - /etc/localtime:/etc/localtime:ro
-      #External Storage
-      - /storage/music:/mnt/music:rw
     environment:
       - PRETTY_NAME=Nextcloud
       - MYSQL_HOST=${NC_MYSQL_HOST}
