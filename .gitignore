@@ -1,6 +1,5 @@
 # Docker volumes folder
-/production/*/volumes
-/development/*/volumes
+volumes/
 
 # Old compose files (good to have)
 /compose-backups
