@@ -1,4 +1,5 @@
-# HomeLab Config (only docker, for the moment)
+# HomeLab Config
+> Recently I migrated my lab to AWS primarily because of expensive power bills. Therefore this repository won't be updated anymore.
 ## Specifications
 Mounted by hand, it's a budget build.
 | Component | Name | Specs |
